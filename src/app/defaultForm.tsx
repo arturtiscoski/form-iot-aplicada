@@ -1,39 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
-  CardHeader,
   CardBody,
   Input,
   Button,
   Typography,
-  Tabs,
-  TabsHeader,
-  TabsBody,
-  Tab,
-  TabPanel,
+  Stepper,
+  Step,
 } from "@material-tailwind/react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 import {
-  CreditCardIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/solid";
- 
-function formatCardNumber(value: string) {
-  const val = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-  const matches = val.match(/\d{4,16}/g);
-  const match = (matches && matches[0]) || "";
-  const parts = [];
- 
-  for (let i = 0, len = match.length; i < len; i += 4) {
-    parts.push(match.substring(i, i + 4));
-  }
- 
-  if (parts.length) {
-    return parts.join(" ");
-  } else {
-    return value;
-  }
-}
- 
+  CogIcon,
+  UserIcon,
+  BuildingLibraryIcon,
+} from "@heroicons/react/24/outline";
+
 function formatExpires(value: string) {
   return value
     .replace(/[^0-9]/g, "")
@@ -42,329 +24,194 @@ function formatExpires(value: string) {
     .replace(/^0{1,}/g, "0")
     .replace(/^([0-1]{1}[0-9]{1})([0-9]{1,2}).*/g, "$1/$2");
 }
- 
+
 export default function CheckoutForm() {
-  const [type, setType] = React.useState("card");
-  const [cardNumber, setCardNumber] = React.useState("");
-  const [cardExpires, setCardExpires] = React.useState("");
- 
+  const [activeStep, setActiveStep] = useState(0);
+  const [isLastStep, setIsLastStep] = useState(false);
+  const [isFirstStep, setIsFirstStep] = useState(false);
+
+  const { register, handleSubmit } = useForm();
+
+  const handleNext = () => !isLastStep && setActiveStep((cur) => cur + 1);
+  const handlePrev = () => !isFirstStep && setActiveStep((cur) => cur - 1);
+
+  const onSubmit = (values: any) => {
+    axios(process.env.NEXT_PUBLIC_ROUTE + "/saveDados", values)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
-    <Card className="w-full">
+    <Card className="w-full px-24 py-4">
       <CardBody>
-        <Tabs value={type} className="overflow-visible">
-          <TabsHeader className="relative z-0 ">
-            <Tab value="usuarios" onClick={() => setType("usuarios")}>
-              Usuários
-            </Tab>
-            <Tab value="biometria" onClick={() => setType("biometria")}>
-              Biometria
-            </Tab>
-            <Tab value="senhas" onClick={() => setType("senhas")}>
-              Senhas
-            </Tab>
-          </TabsHeader>
-          <TabsBody
-            className="!overflow-x-hidden !overflow-y-visible"
-            animate={{
-              initial: {
-                x: type === "card" ? 400 : -400,
-              },
-              mount: {
-                x: 0,
-              },
-              unmount: {
-                x: type === "card" ? 400 : -400,
-              },
-            }}
-          >
-            <TabPanel value="usuarios" className="p-0">
-              <form className="mt-12 flex flex-col gap-4">
-                <div>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Your Email
-                  </Typography>
-                  <Input
-                    type="email"
-                    placeholder="name@mail.com"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                </div>
- 
-                <div className="my-3">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium "
-                  >
-                    Card Details
-                  </Typography>
- 
-                  <Input
-                    maxLength={19}
-                    value={formatCardNumber(cardNumber)}
-                    onChange={(event) => setCardNumber(event.target.value)}
-                    icon={
-                      <CreditCardIcon className="absolute left-0 h-4 w-4 text-blue-gray-300" />
-                    }
-                    placeholder="0000 0000 0000 0000"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                  <div className="my-4 flex items-center gap-4">
-                    <div>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="mb-2 font-medium"
-                      >
-                        Expires
-                      </Typography>
-                      <Input
-                        maxLength={5}
-                        value={formatExpires(cardExpires)}
-                        onChange={(event) => setCardExpires(event.target.value)}
-                        containerProps={{ className: "min-w-[72px]" }}
-                        placeholder="00/00"
-                        className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                        labelProps={{
-                          className: "before:content-none after:content-none",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="mb-2 font-medium"
-                      >
-                        CVC
-                      </Typography>
-                      <Input
-                        maxLength={4}
-                        containerProps={{ className: "min-w-[72px]" }}
-                        placeholder="000"
-                        className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                        labelProps={{
-                          className: "before:content-none after:content-none",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Holder Name
-                  </Typography>
-                  <Input
-                    placeholder="name@mail.com"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                </div>
-                <Button size="lg">CADASTRAR</Button>
-                <Typography
-                  variant="small"
-                  color="gray"
-                  className="mt-2 flex items-center justify-center gap-2 font-medium opacity-60"
-                >
-                  <LockClosedIcon className="-mt-0.5 h-4 w-4" /> Payments are
-                  secure and encrypted
-                </Typography>
-              </form>
-            </TabPanel>
-            <TabPanel value="biometria" className="p-0">
-              <form className="mt-12 flex flex-col gap-4">
-                <div>
-                  <Typography
-                    variant="paragraph"
-                    color="blue-gray"
-                    className="mb-4 font-medium"
-                  >
-                    Personal Details
-                  </Typography>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Your Email
-                  </Typography>
-                  <Input
-                    type="email"
-                    placeholder="name@mail.com"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                </div>
- 
-                <div className="my-6">
-                  <Typography
-                    variant="paragraph"
-                    color="blue-gray"
-                    className="mb-4 font-medium"
-                  >
-                    Billing Address
-                  </Typography>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Country
-                  </Typography>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mt-4 -mb-2 font-medium"
-                  >
-                    Postal Code
-                  </Typography>
-                  <Input
-                    placeholder="0000"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                    containerProps={{ className: "mt-4" }}
-                  />
-                </div>
-                <Button size="lg">pay with paypal</Button>
-                <Typography
-                  variant="small"
-                  color="gray"
-                  className="flex items-center justify-center gap-2 font-medium opacity-60"
-                >
-                  <LockClosedIcon className="-mt-0.5 h-4 w-4" /> Payments are
-                  secure and encrypted
-                </Typography>
-              </form>
-            </TabPanel>
-            <TabPanel value="senhas" className="p-0">
-              <form className="mt-12 flex flex-col gap-4">
-                <div>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Your Email
-                  </Typography>
-                  <Input
-                    type="email"
-                    placeholder="name@mail.com"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                </div>
- 
-                <div className="my-3">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium "
-                  >
-                    Card Details
-                  </Typography>
- 
-                  <Input
-                    maxLength={19}
-                    value={formatCardNumber(cardNumber)}
-                    onChange={(event) => setCardNumber(event.target.value)}
-                    icon={
-                      <CreditCardIcon className="absolute left-0 h-4 w-4 text-blue-gray-300" />
-                    }
-                    placeholder="0000 0000 0000 0000"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                  <div className="my-4 flex items-center gap-4">
-                    <div>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="mb-2 font-medium"
-                      >
-                        Expires
-                      </Typography>
-                      <Input
-                        maxLength={5}
-                        value={formatExpires(cardExpires)}
-                        onChange={(event) => setCardExpires(event.target.value)}
-                        containerProps={{ className: "min-w-[72px]" }}
-                        placeholder="00/00"
-                        className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                        labelProps={{
-                          className: "before:content-none after:content-none",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="mb-2 font-medium"
-                      >
-                        CVC
-                      </Typography>
-                      <Input
-                        maxLength={4}
-                        containerProps={{ className: "min-w-[72px]" }}
-                        placeholder="000"
-                        className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                        labelProps={{
-                          className: "before:content-none after:content-none",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-2 font-medium"
-                  >
-                    Holder Name
-                  </Typography>
-                  <Input
-                    placeholder="name@mail.com"
-                    className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                    labelProps={{
-                      className: "before:content-none after:content-none",
-                    }}
-                  />
-                </div>
-                <Button size="lg">Pay Now</Button>
-                <Typography
-                  variant="small"
-                  color="gray"
-                  className="mt-2 flex items-center justify-center gap-2 font-medium opacity-60"
-                >
-                  <LockClosedIcon className="-mt-0.5 h-4 w-4" /> Payments are
-                  secure and encrypted
-                </Typography>
-              </form>
-            </TabPanel>
-          </TabsBody>
-        </Tabs>
+        <Stepper
+          activeStep={activeStep}
+          isLastStep={(value) => setIsLastStep(value)}
+          isFirstStep={(value) => setIsFirstStep(value)}
+        >
+          <Step onClick={() => setActiveStep(0)}>
+            <UserIcon className="h-5 w-5" />
+            <div className="absolute -bottom-[2.5rem] w-max text-center">
+              <Typography
+                variant="h6"
+                color={activeStep === 0 ? "blue-gray" : "gray"}
+              >
+                Usuários
+              </Typography>
+            </div>
+          </Step>
+          <Step onClick={() => setActiveStep(0)}>
+            <CogIcon className="h-5 w-5" />
+            <div className="absolute -bottom-[2.5rem] w-max text-center">
+              <Typography
+                variant="h6"
+                color={activeStep === 0 ? "blue-gray" : "gray"}
+              >
+                Biometria
+              </Typography>
+            </div>
+          </Step>
+          <Step onClick={() => setActiveStep(0)}>
+            <BuildingLibraryIcon className="h-5 w-5" />
+            <div className="absolute -bottom-[2.5rem] w-max text-center">
+              <Typography
+                variant="h6"
+                color={activeStep === 0 ? "blue-gray" : "gray"}
+              >
+                RFID
+              </Typography>
+            </div>
+          </Step>
+        </Stepper>
       </CardBody>
+
+      <form className="mt-12 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+        {activeStep === 0 && (
+          <>
+            <div>
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium"
+              >
+                Nome completo
+              </Typography>
+              <Input
+                {...register("name")}
+                type="text"
+                placeholder="João da Silva"
+                className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+                labelProps={{
+                  className: "before:content-none after:content-none",
+                }}
+              />
+            </div>
+
+            <div className="my-3">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium"
+              >
+                E-mail
+              </Typography>
+              <Input
+                {...register("email")}
+                type="email"
+                placeholder="name@mail.com"
+                className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+                labelProps={{
+                  className: "before:content-none after:content-none",
+                }}
+              />
+            </div>
+
+            <div>
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium "
+              >
+                Senha numérica
+              </Typography>
+
+              <Input
+                {...register("password")}
+                maxLength={6}
+                type="password"
+                placeholder="000000"
+                className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+                labelProps={{
+                  className: "before:content-none after:content-none",
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        {activeStep === 1 && (
+          <>
+            <div>
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium"
+              >
+                Código Biometria
+              </Typography>
+              <Input
+                {...register("biometria")}
+                placeholder="XX:XX:XX:XX"
+                className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+                labelProps={{
+                  className: "before:content-none after:content-none",
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        {activeStep === 2 && (
+          <>
+            <div>
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium"
+              >
+                Código RFID
+              </Typography>
+              <Input
+                {...register("rfid")}
+                placeholder="XX:XX:XX:XX"
+                className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+                labelProps={{
+                  className: "before:content-none after:content-none",
+                }}
+              />
+            </div>
+          </>
+        )}
+        <div className="my-4 flex justify-between">
+          <Button onClick={handlePrev} disabled={isFirstStep}>
+            Anterior
+          </Button>
+          {isLastStep ? (
+            <Button type="submit">Finalizar</Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              type={isLastStep ? "submit" : "button"}
+            >
+              Próximo
+            </Button>
+          )}
+        </div>
+      </form>
     </Card>
   );
 }
