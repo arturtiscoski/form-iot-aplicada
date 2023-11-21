@@ -1,6 +1,6 @@
 "use client";
 import { ThemeProvider } from "@material-tailwind/react";
-import DefaultForm from "./defaultForm";
+import DefaultForm from "./defaultForm/page";
 
 export default function Home() {
   return (
