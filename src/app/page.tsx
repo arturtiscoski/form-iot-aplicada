@@ -23,28 +23,16 @@ export default function CheckoutForm() {
   const { register, handleSubmit, formState: { errors }, } = useForm<FormInputs>();
 
   const onSubmit = (values: any) => {
-    setLoading(true);
-    if (values.email === 'artur-tiscoski@hotmail.com') {
+    if (values.email === 'artur-tiscoski@hotmail.com' && values.password === '123123') {
       window.location.href = '/listagem';
-      setLoading(false);
-      return;
+    } else {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Senha e/ou login errado(s)!',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      })
     }
-    axios.post(process.env.NEXT_PUBLIC_ROUTE || '', values)
-      .then((res) => {
-        window.location.href = '/listagem';
-      })
-      .catch((err) => {
-        Swal.fire({
-          title: 'Erro!',
-          text: 'Senha e/ou login errado(s)!',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        })
-        console.log(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
   };
 
   return (
