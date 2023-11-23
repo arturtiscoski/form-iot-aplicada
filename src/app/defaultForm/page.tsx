@@ -1,3 +1,4 @@
+"use client"
 import React, { use, useState } from "react";
 import {
   Card,
