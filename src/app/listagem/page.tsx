@@ -6,7 +6,7 @@ import axios from "axios";
 
 export default function Listagem() {
   const [data, setData] = useState([] as any[]);
-  const TABLE_HEAD = ["Nome", "Email", "Biometria", "RFID"];
+  const TABLE_HEAD = ["Nome", "Email", "Biometria", "RFIDD"];
 
   useEffect(() => {
     axios.get((process.env.NEXT_PUBLIC_ROUTE_READ || ''))
