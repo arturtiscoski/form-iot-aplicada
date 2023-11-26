@@ -1,6 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Button, Card, CardBody, ThemeProvider, Typography } from "@material-tailwind/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  ThemeProvider,
+  Typography,
+} from "@material-tailwind/react";
 import Link from "next/link";
 import axios from "axios";
 
@@ -9,20 +15,21 @@ export default function Listagem() {
   const TABLE_HEAD = ["Nome", "Email", "Biometria", "RFIDD"];
 
   useEffect(() => {
-    axios.get((process.env.NEXT_PUBLIC_ROUTE_READ || ''))
+    axios
+      .get(process.env.NEXT_PUBLIC_ROUTE_READ || "")
       .then((res: any) => {
-        console.log('res -> ', res);
+        console.log("res -> ", res);
         setData(res?.data?.feeds);
       })
       .catch((err) => {
         console.log(err);
       });
-  }, [])
+  }, []);
 
   return (
     <ThemeProvider>
       <main className="flex min-h-screen flex-col items-center justify-between p-12">
-        <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+        <div className="z-10 max-w-[690px] w-full items-center justify-between font-mono text-sm lg:flex">
           <Card className="w-full px-24 py-4">
             <CardBody>
               <Link href="/cadastro">
@@ -32,7 +39,7 @@ export default function Listagem() {
               </Link>
 
               <Card className="h-full w-full">
-                <table className="w-full min-w-max table-auto text-left">
+                {/* <table className="w-full min-w-max table-auto text-left">
                   <thead>
                     <tr>
                       {TABLE_HEAD.map((head) => (
@@ -74,7 +81,25 @@ export default function Listagem() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table> */}
+                <iframe
+                  width="450"
+                  height="260"
+                  style={{ border: "1px solid #cccccc" }}
+                  src="https://thingspeak.com/channels/2354855/charts/2?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&type=line&update=15"
+                />
+                <iframe
+                  width="450"
+                  height="260"
+                  style={{ border: "1px solid #cccccc" }}
+                  src="https://thingspeak.com/channels/2354855/charts/3?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&type=line&update=15"
+                />
+                <iframe
+                  width="450"
+                  height="260"
+                  style={{ border: "1px solid #cccccc" }}
+                  src="https://thingspeak.com/channels/2354855/charts/4?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&type=line&update=15"
+                />
               </Card>
             </CardBody>
           </Card>

@@ -1,23 +1,18 @@
-"use client"
-import React, { use, useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardBody,
   Input,
   Button,
   Typography,
-  Stepper,
-  Step,
   Spinner,
+  Switch,
 } from "@material-tailwind/react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import {
-  CogIcon,
-  UserIcon,
-  BuildingLibraryIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 function formatExpires(value: string) {
   return value
@@ -30,217 +25,100 @@ function formatExpires(value: string) {
 
 export default function CheckoutForm() {
   const [loading, setLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
-  const [isLastStep, setIsLastStep] = useState(false);
-  const [isFirstStep, setIsFirstStep] = useState(false);
+  const { register, setValue, handleSubmit } = useForm();
 
-  const { register, handleSubmit } = useForm();
+  useEffect(() => {
+    fetchCadastro();
+  }, []);
 
-  const handleNext = () => !isLastStep && setActiveStep((cur) => cur + 1);
-  const handlePrev = () => !isFirstStep && setActiveStep((cur) => cur - 1);
+  const fetchCadastro = () => {
+    axios
+      .get(process.env.NEXT_PUBLIC_ROUTE_READ || "")
+      .then((res: any) => {
+        const length = res?.data?.feeds?.length;
+        console.log("res -> ", res?.data?.feeds[length - 1].field1);
+        setValue("usuario", res?.data?.feeds[length - 1].field1 == 1);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const onSubmit = (values: any) => {
     setLoading(true);
     values = {
-      ...values,
-      api_key: '7GNSQB81HFDQPX5C',
-      field1: values.password
-    }
-    axios.post(process.env.NEXT_PUBLIC_ROUTE_WRITE || '', values)
+      api_key: "7GNSQB81HFDQPX5C",
+      field1: values.usuario ? 1 : 0,
+    };
+    console.log("value", values);
+    axios
+      .post(process.env.NEXT_PUBLIC_ROUTE_WRITE || "", values)
       .then((res) => {
         console.log(res);
+        if (res?.data == 0) {
+          throw "É necessário esperar para inserir novamente!";
+        }
       })
       .catch((err) => {
         console.log(err);
+        Swal.fire({
+          title: "Erro!",
+          text: err,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       })
       .finally(() => {
         setLoading(false);
+        fetchCadastro();
       });
   };
 
   return (
     <>
-      {
-        loading
-          ?
-          <Card className="w-full px-24 py-4">
-            <Spinner />
-          </Card>
-          :
-          <Card className="w-full px-24 py-4">
-            <CardBody>
-              <Link href="/listagem">
-                <Button style={{ marginBottom: 18 }}>
-                  Listagem de usuários
-                </Button>
-              </Link>
-              <Stepper
-                activeStep={activeStep}
-                isLastStep={(value) => setIsLastStep(value)}
-                isFirstStep={(value) => setIsFirstStep(value)}
+      {loading ? (
+        <Card className="w-full px-24 py-4">
+          <Spinner />
+        </Card>
+      ) : (
+        <Card className="w-full px-24 py-4">
+          <CardBody>
+            <Link href="/listagem">
+              <Button style={{ marginBottom: 18 }}>Listagem de usuários</Button>
+            </Link>
+          </CardBody>
+
+          <form className=" flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+            <div>
+              <Typography
+                variant="h1"
+                color="blue-gray"
+                className="mb-2 font-medium"
               >
-                <Step onClick={() => setActiveStep(0)}>
-                  <UserIcon className="h-5 w-5" />
-                  <div className="absolute -bottom-[2.5rem] w-max text-center">
-                    <Typography
-                      variant="h6"
-                      color={activeStep === 0 ? "blue-gray" : "gray"}
-                    >
-                      Usuários
-                    </Typography>
-                  </div>
-                </Step>
-                <Step onClick={() => setActiveStep(0)}>
-                  <CogIcon className="h-5 w-5" />
-                  <div className="absolute -bottom-[2.5rem] w-max text-center">
-                    <Typography
-                      variant="h6"
-                      color={activeStep === 0 ? "blue-gray" : "gray"}
-                    >
-                      Biometria
-                    </Typography>
-                  </div>
-                </Step>
-                <Step onClick={() => setActiveStep(0)}>
-                  <BuildingLibraryIcon className="h-5 w-5" />
-                  <div className="absolute -bottom-[2.5rem] w-max text-center">
-                    <Typography
-                      variant="h6"
-                      color={activeStep === 0 ? "blue-gray" : "gray"}
-                    >
-                      RFID
-                    </Typography>
-                  </div>
-                </Step>
-              </Stepper>
-            </CardBody>
-
-            <form className="mt-12 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
-              {activeStep === 0 && (
-                <>
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="mb-2 font-medium"
-                    >
-                      Nome completo
-                    </Typography>
-                    <Input
-                      {...register("name")}
-                      type="text"
-                      placeholder="João da Silva"
-                      className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                      labelProps={{
-                        className: "before:content-none after:content-none",
-                      }}
-                    />
-                  </div>
-
-                  <div className="my-3">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="mb-2 font-medium"
-                    >
-                      E-mail
-                    </Typography>
-                    <Input
-                      {...register("email")}
-                      type="email"
-                      placeholder="name@mail.com"
-                      className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                      labelProps={{
-                        className: "before:content-none after:content-none",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="mb-2 font-medium "
-                    >
-                      Senha numérica
-                    </Typography>
-
-                    <Input
-                      {...register("password")}
-                      maxLength={6}
-                      type="password"
-                      placeholder="000000"
-                      className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                      labelProps={{
-                        className: "before:content-none after:content-none",
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {activeStep === 1 && (
-                <>
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="mb-2 font-medium"
-                    >
-                      Código Biometria
-                    </Typography>
-                    <Input
-                      {...register("biometria")}
-                      placeholder="XX:XX:XX:XX"
-                      className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                      labelProps={{
-                        className: "before:content-none after:content-none",
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {activeStep === 2 && (
-                <>
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="mb-2 font-medium"
-                    >
-                      Código RFID
-                    </Typography>
-                    <Input
-                      {...register("rfid")}
-                      placeholder="XX:XX:XX:XX"
-                      className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-                      labelProps={{
-                        className: "before:content-none after:content-none",
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-              <div className="my-4 flex justify-between">
-                <Button onClick={handlePrev} disabled={isFirstStep}>
-                  Anterior
-                </Button>
-                {isLastStep ? (
-                  <Button type="submit">Finalizar</Button>
-                ) : (
-                  <Button
-                    onClick={handleNext}
-                    type={isLastStep ? "submit" : "button"}
-                  >
-                    Próximo
-                  </Button>
-                )}
+                Está em modo de cadastro?
+              </Typography>
+              <div className="grid place-content-center h-48">
+                <Switch
+                  {...register("usuario")}
+                  color="green"
+                  ripple={false}
+                  className="h-full w-full checked:bg-[#2ec946]"
+                  containerProps={{
+                    className: "w-[210px] h-[110px]",
+                  }}
+                  circleProps={{
+                    className:
+                      "w-[100px] h-[100px] before:hidden left-1.5 border-none",
+                  }}
+                />
               </div>
-            </form>
-          </Card>
-      }
-
+            </div>
+            <Button className="my-6" type="submit">
+              Finalizar
+            </Button>
+          </form>
+        </Card>
+      )}
     </>
   );
 }
